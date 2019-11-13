@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="plugins/ztree/css/zTreeStyle/zTreeStyle.css">
+    <script src="plugins/ztree/js/jquery-1.4.4.min.js"></script>
+    <script src="plugins/ztree/js/jquery.ztree.all-3.5.js"></script>
+    <SCRIPT LANGUAGE="JavaScript">
+        var zTreeObj;
+        // zTree 的参数配置，深入使用请参考 API 文档（setting 配置详解）
+        var setting = {
+            check: {
+                enable: true  //开启显示复选框
+            },
+            data: {
+            simpleData: {
+                enable: true,  //使用简单json数据结构
+                idKey: "id",
+                pIdKey: "pId",
+                rootPId: 0
+            }}
+        };
+        // zTree 的数据属性，深入使用请参考 API 文档（zTreeNode 节点数据详解）
+       /* var zNodes = [
+            {name:"test1", open:true, children:[
+                    {name:"test1_1"}, {name:"test1_2"}]},
+            {name:"test2", open:true, children:[
+                    {name:"test2_1"}, {name:"test2_2",
+                        children:[{name:"test2_2_1"},{name:"test2_2_2"}]}]}
+        ];*/
+        var zNodes = [
+            {id:1,pId:0,name:"test1"},
+            {id:2,pId:0,name:"test2"},
+            {id:11,pId:1,name:"test1_1",checked:true},
+            {id:12,pId:1,name:"test1_2"},
+            {id:21,pId:2,name:"test2_1"},
+            {id:22,pId:2,name:"test2_2"}
+        ]
+        $(document).ready(function(){
+            zTreeObj = $.fn.zTree.init($("#treeDemo"), setting, zNodes);
+            zTreeObj.expandAll(true); //打开所有的树形节点
+        });
+
+        // 获取勾选的数据节点
+        let moduleIds ='';
+        function getNodes() {
+            alert(1 =="1");
+
+            var nodes = zTreeObj.getCheckedNodes(); //默认是true
+            for (let i = 0; i < nodes.length; i++) {
+                const node = nodes[i];
+                if(nodes.length-1==i){
+                    moduleIds+=node.id
+                }else{
+                    moduleIds+=node.id+","
+                }
+            }
+            alert(moduleIds);
+        }
+        
+    </SCRIPT>
+</head>
+<body>
+    <ul id="treeDemo" class="ztree"></ul>
+
+<button   onclick="getNodes()">保存</button>
+</body>
+</html>

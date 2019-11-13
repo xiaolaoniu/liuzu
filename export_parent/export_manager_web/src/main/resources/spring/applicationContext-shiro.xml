@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <description>Shiro与Spring整合</description>
+
+    <bean id="myPerms" class="cn.itcast.filter.MyPermsFilter"/>
+
+    <!-- filter-name这个名字的值来自于web.xml中filter的名字 -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager"/>
+        <!--登录页面 如果没有登录 访问项目的方法或页面 直接跳转到这个页面  -->
+        <property name="loginUrl" value="/login.jsp"></property>
+        <!--登录后 在访问没有经过授权的方法或页面时 直接跳转到这个页面  -->
+        <property name="unauthorizedUrl" value="/unauthorized.jsp"></property>
+
+        <property name="filters">
+            <map>
+                <entry key="perms" value-ref="myPerms"/>
+            </map>
+        </property>
+<!--        过滤器链-->
+        <property name="filterChainDefinitions">
+            <!-- /**代表下面的多级目录也过滤 -->
+            <value>
+<!--                login.jsp页面使用的是anon过滤器：说明未登录时也可以访问此页面-->
+               /login.jsp=anon
+               /favicon.ico=anon
+               /css/** = anon
+               /img/** = anon
+               /make/** = anon
+               /plugins/** = anon
+               /login.do = anon
+<!--                当前登录人有企业管理的权限才能访问-->
+               /company/list.do=perms["企业管理","日志管理"]
+
+
+           <!--    /system/module/list.do=perms["模块管理"]
+               /system/user/list.do=perms["用户管理"]-->
+
+<!--                所有的资源都必须登录才能访问-->
+                /** = authc
+            </value>
+        </property>
+    </bean>
+
+    <!-- 引用自定义的realm-->
+        <bean id="saasRealm" class="cn.itcast.realm.SaaSRealm"/>
+
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+         <property name="realm" ref="saasRealm"/>
+        <property name="cacheManager" ref="cacheManager"/>
+    </bean>
+
+    <bean id="cacheManager" class="org.apache.shiro.cache.MemoryConstrainedCacheManager"/>
+
+
+    <!--    如果使用shiro的注解开发时才起作用-->
+    <!-- 安全管理器 -->
+   <!---->
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+
+    <!-- 保证实现了Shiro内部lifecycle函数的bean执行 -->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+
+    <!-- 生成代理，通过代理进行控制 -->
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+          depends-on="lifecycleBeanPostProcessor">
+        <property name="proxyTargetClass" value="true"/>
+    </bean>
+
+    <aop:aspectj-autoproxy proxy-target-class="true"/>
+
+</beans>
